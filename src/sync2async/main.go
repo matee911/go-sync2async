@@ -40,7 +40,7 @@ func main() {
 		mapping[transactionId] = &request
 
 		go func(request *Request) {
-			time.Sleep(2 * time.Second)
+			time.Sleep(1 * time.Second)
 			request.resultChan <- request.transactionId
 		}(&request)
 
