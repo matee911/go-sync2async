@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+//	"bufio"
 	"io"
 	"log"
 	"net"
@@ -39,7 +39,7 @@ func sync(res http.ResponseWriter, req *http.Request) {
 func main() {
 	msg := make(chan Msg, 10)
 
-	connection, err := net.Dial("tcp", "", "127.0.0.1:9001")
+	connection, _ := net.Dial("tcp", "127.0.0.1:9001")
 	defer connection.Close()
 
 	http_handler := func(res http.ResponseWriter, req *http.Request) {
@@ -52,7 +52,7 @@ func main() {
 	go func() {
 		for {
 			recv_msg := <-msg
-			connection.Write("abc")
+			//connection.Write("abc")
 			log.Printf("%v", recv_msg.Msg)
 		}
 	}()
