@@ -47,8 +47,8 @@ func main() {
 		res.Header().Set("Content-Type", "text/plain")
 		res.Header().Set("Server", "nagra-proxy")
 		select {
-		case res := <- request.resultChan:
-			io.WriteString(res, <-request.resultChan)
+		case r := <- request.resultChan:
+			io.WriteString(res, r)
 		case <-time.After(5 * time.Second):
 			io.WriteString(res, "zepsute")
 		}
