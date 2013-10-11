@@ -10,8 +10,9 @@ import (
 	"time"
 )
 
-type Msg struct {
-	Msg string
+type Request struct {
+	resultChan chan string
+	transactionId string
 }
 
 func log_request(start time.Time, request *http.Request) {
@@ -24,42 +25,37 @@ func log_request(start time.Time, request *http.Request) {
 	)
 }
 
-func index(res http.ResponseWriter, req *http.Request) {
-	defer log_request(time.Now(), req)
-	res.Header().Set("Content-Type", "text/plain")
-	io.WriteString(res, "Dzień dobry")
-}
-
-func sync(res http.ResponseWriter, req *http.Request) {
-	defer log_request(time.Now(), req)
-	res.Header().Set("Content-Type", "application/json")
-	io.WriteString(res, "{}")
-}
-
 func main() {
-	msg := make(chan Msg, 10)
-
+	mapping := make(map[string]*Request)
 	connection, _ := net.Dial("tcp", "127.0.0.1:9001")
 	defer connection.Close()
 
+
 	http_handler := func(res http.ResponseWriter, req *http.Request) {
 		defer log_request(time.Now(), req)
-		msg <- Msg{Msg: "req"}
-		res.Header().Set("Content-Type", "application/json")
-		io.WriteString(res, "OK")
+		req.ParseForm()
+		transactionId := req.Form.Get("transaction_id")
+
+		request := Request{resultChan: make(chan string), transactionId: transactionId}
+		mapping[transactionId] = &request
+
+		go func(request *Request) {
+			time.Sleep(2 * time.Second)
+			request.resultChan <- request.transactionId
+		}(&request)
+
+		res.Header().Set("Content-Type", "text/plain")
+		res.Header().Set("Server", "nagra-proxy")
+		select {
+		case res := <- request.resultChan:
+			io.WriteString(res, <-request.resultChan)
+		case <-time.After(5 * time.Second):
+			io.WriteString(res, "zepsute")
+		}
+		
 	}
 
-	go func() {
-		for {
-			recv_msg := <-msg
-			//connection.Write("abc")
-			log.Printf("%v", recv_msg.Msg)
-		}
-	}()
-
-	/*    http.HandleFunc("/", index)*/
 	http.HandleFunc("/sync", http_handler)
-
 	log.Printf("Listening on 0.0.0.0:9000")
 	log.Fatal(http.ListenAndServe(":9000", nil))
 	os.Exit(1)

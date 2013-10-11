@@ -22,3 +22,5 @@ fmt:
 doc:
 	GOPATH=$(GOPATH) go doc sync2async
 
+run:
+	GOPATH=$(GOPATH) go run
