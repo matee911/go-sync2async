@@ -1,13 +1,13 @@
 package main
 
 import (
-	"io"
-	"net/http"
 	"flag"
-	"log"
-	"time"
-	"strconv"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 var port int
@@ -28,14 +28,14 @@ func judgeHandler(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Server", "judge/0.1")
 	req.ParseForm()
 	transactionId, _ := strconv.Atoi(req.Form.Get("transaction_id"))
-	if transactionId % 2 == 0 {
+	if transactionId%2 == 0 {
 		io.WriteString(res, "OK")
 	} else {
 		io.WriteString(res, "FAIL")
 	}
 }
 
-func parseArguments(){
+func parseArguments() {
 	flag.IntVar(&port, "port", 3000, "Port on which server will listen")
 	flag.Parse()
 }

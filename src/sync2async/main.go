@@ -1,7 +1,7 @@
 package main
 
 import (
-//	"bufio"
+	//	"bufio"
 	"io"
 	"log"
 	"net"
@@ -11,7 +11,7 @@ import (
 )
 
 type Request struct {
-	resultChan chan string
+	resultChan    chan string
 	transactionId string
 }
 
@@ -30,7 +30,6 @@ func main() {
 	connection, _ := net.Dial("tcp", "127.0.0.1:9001")
 	defer connection.Close()
 
-
 	http_handler := func(res http.ResponseWriter, req *http.Request) {
 		defer log_request(time.Now(), req)
 		req.ParseForm()
@@ -47,12 +46,12 @@ func main() {
 		res.Header().Set("Content-Type", "text/plain")
 		res.Header().Set("Server", "nagra-proxy")
 		select {
-		case r := <- request.resultChan:
+		case r := <-request.resultChan:
 			io.WriteString(res, r)
 		case <-time.After(5 * time.Second):
 			io.WriteString(res, "zepsute")
 		}
-		
+
 	}
 
 	http.HandleFunc("/sync", http_handler)
