@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"logging"
 )
 
 var port int
@@ -23,7 +24,7 @@ func log_request(start time.Time, request *http.Request) {
 }
 
 func judgeHandler(res http.ResponseWriter, req *http.Request) {
-	defer log_request(time.Now(), req)
+	defer logging.HttpRequest(time.Now(), req)
 	res.Header().Set("Content-Type", "text/plain")
 	res.Header().Set("Server", "judge/0.1")
 	req.ParseForm()

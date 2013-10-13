@@ -11,6 +11,8 @@ import (
 	"time"
 	"encoding/json"
 	"io/ioutil"
+	"logging"
+	"judge"
 )
 
 type Request struct {
@@ -22,16 +24,6 @@ type Config map[string]interface{}
 var (
 	config Config
 )
-
-func log_request(start time.Time, request *http.Request) {
-	log.Printf("\"%s %s\" %s \"%s\" %s",
-		request.Method,
-		request.URL.RequestURI(),
-		request.Proto,
-		request.UserAgent(),
-		time.Since(start),
-	)
-}
 
 func parseArguments() (config_path string) {
 	flag.StringVar(&config_path, "config", "sync2async.json", "Path to configuration file")
@@ -55,8 +47,10 @@ func loadConfig(config_path string, fail bool) {
 			os.Exit(1)
 		}
 	}
+	
 	config = temp
 }
+
 
 func init() {
 	config_path := parseArguments()
@@ -69,10 +63,14 @@ func main() {
 	defer connection.Close()
 
 	http_handler := func(res http.ResponseWriter, req *http.Request) {
-		defer log_request(time.Now(), req)
+		defer logging.HttpRequest(time.Now(), req)
 		req.ParseForm()
 		transactionId := req.Form.Get("transaction_id")
 
+		// Ask judge...
+		judge.AskForPermission()
+		// If OK, hit DRM server
+		// in other case, just return some error
 
 		request := Request{resultChan: make(chan string), transactionId: transactionId}
 		mapping[transactionId] = &request
@@ -87,7 +85,7 @@ func main() {
 		select {
 		case r := <-request.resultChan:
 			io.WriteString(res, r)
-		case <-time.After(config["timeout"].(time.Duration) * time.Second):
+		case <-time.After(5 * time.Second):
 			io.WriteString(res, "zepsute")
 		}
 
