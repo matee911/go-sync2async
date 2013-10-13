@@ -25,6 +25,5 @@ func LoadConfig(config *Config, config_path string, fail bool) {
 			os.Exit(1)
 		}
 	}
-	log.Printf("temp %v", temp)
 	*config = temp
 }

@@ -1,27 +1,37 @@
 package main
 
 import (
-	"cfg"
 	"flag"
 	"fmt"
 	"io"
-	"judge"
 	"log"
-	"logging"
 	"net"
 	"net/http"
 	"os"
 	"time"
+	"encoding/json"
+	"io/ioutil"
 )
 
 type Request struct {
 	resultChan    chan string
-	TransactionId string
+	transactionId string
 }
 
+type Config map[string]interface{}
 var (
-	config cfg.Config
+	config Config
 )
+
+func log_request(start time.Time, request *http.Request) {
+	log.Printf("\"%s %s\" %s \"%s\" %s",
+		request.Method,
+		request.URL.RequestURI(),
+		request.Proto,
+		request.UserAgent(),
+		time.Since(start),
+	)
+}
 
 func parseArguments() (config_path string) {
 	flag.StringVar(&config_path, "config", "sync2async.json", "Path to configuration file")
@@ -29,34 +39,47 @@ func parseArguments() (config_path string) {
 	return
 }
 
+func loadConfig(config_path string, fail bool) {
+	file, err := ioutil.ReadFile(config_path)
+	if err != nil {
+		log.Println("open config: ", err)
+		if fail {
+			os.Exit(1)
+		}
+	}
+
+	var temp Config
+	if err = json.Unmarshal(file, &temp); err != nil {
+		log.Println("parse config: ", err)
+		if fail {
+			os.Exit(1)
+		}
+	}
+	config = temp
+}
+
 func init() {
 	config_path := parseArguments()
-	cfg.LoadConfig(&config, config_path, true)
+	loadConfig(config_path, true)
 }
 
 func main() {
 	mapping := make(map[string]*Request)
-	// TODO: Check connection err
 	connection, _ := net.Dial("tcp", config["drm_addr"].(string))
 	defer connection.Close()
 
 	http_handler := func(res http.ResponseWriter, req *http.Request) {
-		defer logging.HttpRequest(time.Now(), req)
+		defer log_request(time.Now(), req)
 		req.ParseForm()
 		transactionId := req.Form.Get("transaction_id")
 
-		// Ask judge...
-		// judge.Evidence{TransactionId: transactionId}
-		judge.AskForPermission("ala", &config)
-		// If OK, hit DRM server
-		// in other case, just return some error
 
-		request := Request{resultChan: make(chan string), TransactionId: transactionId}
+		request := Request{resultChan: make(chan string), transactionId: transactionId}
 		mapping[transactionId] = &request
 
 		go func(request *Request) {
 			time.Sleep(1 * time.Second)
-			request.resultChan <- request.TransactionId
+			request.resultChan <- request.transactionId
 		}(&request)
 
 		res.Header().Set("Content-Type", "text/plain")
@@ -64,7 +87,7 @@ func main() {
 		select {
 		case r := <-request.resultChan:
 			io.WriteString(res, r)
-		case <-time.After(5 * time.Second):
+		case <-time.After(config["timeout"].(time.Duration) * time.Second):
 			io.WriteString(res, "zepsute")
 		}
 
