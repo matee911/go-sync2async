@@ -2,9 +2,9 @@ package judge
 
 import (
 	"cfg"
-	"net/http"
 	"io/ioutil"
 	"log"
+	"net/http"
 )
 
 type Evidence struct {
@@ -22,7 +22,6 @@ func AskForPermission(evidence string, config *cfg.Config) bool {
 		log.Printf("Body: %v", body)
 	}
 	defer resp.Body.Close()
-	
-	
+
 	return true
 }
