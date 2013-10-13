@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"logging"
 	"net/http"
 	"strconv"
 	"time"
-	"logging"
 )
 
 var port int

@@ -2,8 +2,8 @@ package logging
 
 import (
 	"log"
-	"time"
 	"net/http"
+	"time"
 )
 
 func HttpRequest(start time.Time, request *http.Request) {

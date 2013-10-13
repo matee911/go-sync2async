@@ -1,5 +1,6 @@
 {
-"port": 9898,
-"timeout": 5,
-"drm_addr": "127.0.0.1:3000"
+	"port": 9898,
+	"timeout": 5,
+	"drm_addr": "127.0.0.1:3000",
+	"judge_addr": "http://127.0.0.1:4000/"
 }

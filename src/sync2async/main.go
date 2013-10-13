@@ -1,28 +1,26 @@
 package main
 
 import (
+	"cfg"
 	"flag"
 	"fmt"
 	"io"
+	"judge"
 	"log"
+	"logging"
 	"net"
 	"net/http"
 	"os"
 	"time"
-	"encoding/json"
-	"io/ioutil"
-	"logging"
-	"judge"
 )
 
 type Request struct {
 	resultChan    chan string
-	transactionId string
+	TransactionId string
 }
 
-type Config map[string]interface{}
 var (
-	config Config
+	config cfg.Config
 )
 
 func parseArguments() (config_path string) {
@@ -31,34 +29,14 @@ func parseArguments() (config_path string) {
 	return
 }
 
-func loadConfig(config_path string, fail bool) {
-	file, err := ioutil.ReadFile(config_path)
-	if err != nil {
-		log.Println("open config: ", err)
-		if fail {
-			os.Exit(1)
-		}
-	}
-
-	var temp Config
-	if err = json.Unmarshal(file, &temp); err != nil {
-		log.Println("parse config: ", err)
-		if fail {
-			os.Exit(1)
-		}
-	}
-	
-	config = temp
-}
-
-
 func init() {
 	config_path := parseArguments()
-	loadConfig(config_path, true)
+	cfg.LoadConfig(&config, config_path, true)
 }
 
 func main() {
 	mapping := make(map[string]*Request)
+	// TODO: Check connection err
 	connection, _ := net.Dial("tcp", config["drm_addr"].(string))
 	defer connection.Close()
 
@@ -68,16 +46,17 @@ func main() {
 		transactionId := req.Form.Get("transaction_id")
 
 		// Ask judge...
-		judge.AskForPermission()
+		// judge.Evidence{TransactionId: transactionId}
+		judge.AskForPermission("ala", &config)
 		// If OK, hit DRM server
 		// in other case, just return some error
 
-		request := Request{resultChan: make(chan string), transactionId: transactionId}
+		request := Request{resultChan: make(chan string), TransactionId: transactionId}
 		mapping[transactionId] = &request
 
 		go func(request *Request) {
 			time.Sleep(1 * time.Second)
-			request.resultChan <- request.transactionId
+			request.resultChan <- request.TransactionId
 		}(&request)
 
 		res.Header().Set("Content-Type", "text/plain")
