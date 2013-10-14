@@ -3,6 +3,9 @@ package dvs
 import (
 	"strconv"
 	"strings"
+	"time"
+	"fmt"
+	"encoding/binary"
 )
 
 type CmdType int
@@ -20,18 +23,39 @@ func Enum(i int, size int) string {
 	}
 	return strings.Repeat("0", size-len(s)) + s
 }
-// header=prepare_root_header(tid, CMD_TYPE_OTHER)
+
+// now YYYYMMDD formated in UTC
+func creationDate() string {
+	t := time.Now().UTC()
+	return fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
+}
+
+func Ehex(i int, size int) []byte {
+	b := [4]byte{}
+	binary.BigEndian.PutUint32(b[:], uint32(i))
+	return b[4-size:]
+}
+
+func Hexlen(s string, size int) []byte {
+	return Ehex(len(s), size)
+}
+
+func DeviceIO(body string) []byte {
+	return append(Hexlen(body, 2), []byte(body)...)
+}
+
+// This command allows the portal to ping the DVS.
+// 6. Operation command address header
+// 6.1. 
+// Description
+// This section defines the format of the address headers used by the ACK and NACK in the VOD
+// protocol. Its format is defined by the following table:
+func NoCommand() string {
+	return "1002"
+}
+
 // self.push(deviceio(header + no_command()))
 
-func RootHeader(transactionId int, cmdType CmdType, sourceId int, destId, mopPpid) {
-	command_type = Enum(cmdType, 2)
-	transaction_number = Enum(transactionId, 9)
-	source_id =
- //   source_id = enum(source_id, 4)
- //   assert isinstance(source_id, basestring) and len(source_id)==4
- //   dest_id = enum(dest_id, 4)
- //   assert isinstance(dest_id, basestring) and len(dest_id)==4
-
- //   return transaction_number + command_type + source_id + dest_id + mop_ppid + get_creation_date()
-
+func RootHeader(transactionId int, cmdType CmdType, sourceId int, destId int, mopPpid int) string {
+	return fmt.Sprint(Enum(transactionId, 9), Enum(int(cmdType), 2), Enum(sourceId, 4), Enum(destId, 4), strconv.Itoa(mopPpid), creationDate())
 }

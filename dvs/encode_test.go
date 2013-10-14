@@ -1,6 +1,9 @@
 package dvs
 
-import "testing"
+import (
+	"testing"
+	"fmt"
+)
 
 func assertS(t *testing.T, x string, y string) {
 	if x != y {
@@ -15,4 +18,8 @@ func TestEnum(t *testing.T) {
 	assertS(t, Enum(33, 3), "033")
 	assertS(t, Enum(333, 3), "333")
 	assertS(t, Enum(1234, 3), "1234")
+}
+
+func TestRootHeader(t *testing.T) {
+	assertS(t, RootHeader(12, CmdTypeOther, 3, 75, 99), fmt.Sprint("000000012050003007599", creationDate()))
 }
