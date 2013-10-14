@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/matee911/go-sync2async/logging"
 	"io"
 	"log"
-	"github.com/matee911/go-sync2async/logging"
 	"net/http"
 	"strconv"
 	"time"

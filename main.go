@@ -1,24 +1,23 @@
 package main
 
 import (
-	"github.com/matee911/go-sync2async/cfg"
 	"flag"
 	"fmt"
+	"github.com/matee911/go-sync2async/cfg"
+	"github.com/matee911/go-sync2async/judge"
+	"github.com/matee911/go-sync2async/logging"
 	"io"
 	"log"
-	"github.com/matee911/go-sync2async/judge"
 	"net"
 	"net/http"
 	"os"
 	"time"
-	"github.com/matee911/go-sync2async/logging"
 )
 
 type Request struct {
 	resultChan    chan string
 	TransactionId string
 }
-
 
 var (
 	config cfg.Config
@@ -29,7 +28,6 @@ func parseArguments() (config_path string) {
 	flag.Parse()
 	return
 }
-
 
 func init() {
 	config_path := parseArguments()
