@@ -1,17 +1,17 @@
 package main
 
 import (
-	"cfg"
+	"github.com/matee911/go-sync2async/cfg"
 	"flag"
 	"fmt"
 	"io"
 	"log"
-	"judge"
+	"github.com/matee911/go-sync2async/judge"
 	"net"
 	"net/http"
 	"os"
 	"time"
-	"logging"
+	"github.com/matee911/go-sync2async/logging"
 )
 
 type Request struct {

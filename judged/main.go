@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"logging"
+	"github.com/matee911/go-sync2async/logging"
 	"net/http"
 	"strconv"
 	"time"

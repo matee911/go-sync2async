@@ -1,7 +1,7 @@
 package judge
 
 import (
-	"cfg"
+	"github.com/matee911/go-sync2async/cfg"
 	"io/ioutil"
 	"log"
 	"net/http"
