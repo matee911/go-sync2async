@@ -19,7 +19,7 @@ type Config struct {
 	TransactionDB_Password string
 }
 
-func (config *Config) ReadFromJson(config_path string) {
+func (config *Config) ReadFromJson(configPath string) {
 	def := Config{
 		Port: 9000,
 		Timeout: 5,
@@ -33,7 +33,7 @@ func (config *Config) ReadFromJson(config_path string) {
 	}
 	
 	
-	file, err := ioutil.ReadFile(config_path)
+	file, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		log.Println("open config: ", err)
 	} else {

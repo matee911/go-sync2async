@@ -52,10 +52,9 @@ func CallDVS(request *Request) {
 }
 
 func init() {
-	config_path := parseArguments()
-	//cfg.LoadConfig(&config, config_path, true)
-	config.ReadFromJson(config_path)
 	var err error
+	configPath := parseArguments()
+	config.ReadFromJson(configPath)
 	if dbConn, err = db.Connect(&config); err != nil {
 		os.Exit(1)
 	} else {
