@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"github.com/matee911/go-sync2async/cfg"
@@ -14,9 +15,8 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"time"
-	"database/sql"
 	"strconv"
+	"time"
 )
 
 type Request struct {
@@ -60,7 +60,7 @@ func init() {
 		os.Exit(1)
 	} else {
 		// create sequence
-		
+
 	}
 }
 

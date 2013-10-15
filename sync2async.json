@@ -2,5 +2,5 @@
 	"port": 9000,
 	"timeout": 5,
 	"dvs_addr": "127.0.0.1:3000",
-	"judge_addr": "http://127.0.0.1:4000/"
+	"judge_addr": "http://127.0.0.1:4000/"	
 }

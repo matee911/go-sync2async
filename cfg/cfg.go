@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"os"
 )
 
 //type Config map[string]interface{}
@@ -42,36 +41,5 @@ func (config *Config) ReadFromJson(config_path string) {
 			log.Println("parse config: ", err)
 		}
 	}
-	*config = def
-}
-
-func LoadConfig(config *Config, config_path string, fail bool) {
-	file, err := ioutil.ReadFile(config_path)
-	if err != nil {
-		log.Println("open config: ", err)
-		if fail {
-			os.Exit(1)
-		}
-	}
-
-	def := Config{
-		Port: 9000,
-		Timeout: 5,
-		DVS_Addr: "localhost:3000",
-		Judge_Addr: "http://localhost:4000/",
-		TransactionDB_Host: "localhost",
-		TransactionDB_Port: 5432,
-		TransactionDB_Name: "nproxy",
-		TransactionDB_User: "nproxy",
-		TransactionDB_Password: "yxorpn",
-	}
-	
-	if err = json.Unmarshal(file, &def); err != nil {
-		log.Println("parse config: ", err)
-		if fail {
-			os.Exit(1)
-		}
-	}
-	
 	*config = def
 }
