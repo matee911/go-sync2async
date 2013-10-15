@@ -13,7 +13,7 @@ type Evidence struct {
 
 func AskForPermission(evidence string, config *cfg.Config) bool {
 	c := *config
-	resp, err := http.Get(c["judge_addr"].(string))
+	resp, err := http.Get(c.Judge_Addr)
 	if err != nil {
 		// handle error
 		log.Printf("Error: %v", err)

@@ -14,3 +14,8 @@ func NoCommand(transactionId int, sourceId int, destId int, mopPpid int) []byte 
 	header := RootHeader(transactionId, CmdTypeOther, sourceId, destId, mopPpid)
 	return DeviceIO(fmt.Sprint(header, NoCommandBody()))
 }
+
+func PushVodCommand(transactionId int, sourceId int, destId int, mopPpid int) []byte {
+	header := RootHeader(transactionId, CmdTypeVod, sourceId, destId, mopPpid)
+	return DeviceIO(fmt.Sprint(header, PushVodCommandBody()))
+}
