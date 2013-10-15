@@ -40,7 +40,7 @@ func Hexlen(s string, size int) []byte {
 	return Ehex(len(s), size)
 }
 
-func DeviceIO(body string) []byte {
+func deviceIO(body string) []byte {
 	return append(Hexlen(body, 2), []byte(body)...)
 }
 
@@ -50,11 +50,14 @@ func DeviceIO(body string) []byte {
 // Description
 // This section defines the format of the address headers used by the ACK and NACK in the VOD
 // protocol. Its format is defined by the following table:
-func NoCommand() string {
+func noCommand() string {
 	return "1002"
 }
 
-// self.push(deviceio(header + no_command()))
+func NoCommand(transactionId int, sourceId int, destId int, mopPpid int) []byte {
+	header := RootHeader(transactionId, CmdTypeOther, sourceId, destId, mopPpid)
+	return deviceIO(fmt.Sprint(header, noCommand()))
+}
 
 func RootHeader(transactionId int, cmdType CmdType, sourceId int, destId int, mopPpid int) string {
 	return fmt.Sprint(Enum(transactionId, 9), Enum(int(cmdType), 2), Enum(sourceId, 4), Enum(destId, 4), strconv.Itoa(mopPpid), creationDate())
