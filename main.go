@@ -30,6 +30,13 @@ func parseArguments() (config_path string) {
 	return
 }
 
+func Ping(connection *net.Conn, transactionId int) {
+	//_, err := connection.Write(dvs.NoCommand(1, 1, 1, 1))
+	//if err != nil {
+	//	log.Printf("DVS Conn: %v", err)
+	//}
+}
+
 func init() {
 	config_path := parseArguments()
 	cfg.LoadConfig(&config, config_path, true)
@@ -43,16 +50,14 @@ func main() {
 	}
 	defer connection.Close()
 	
+	
 	// TODO(m): ladowanie czasu tickera z konfigu i castowanie
 	ticker := time.NewTicker(time.Second * 30)
 	defer ticker.Stop()
 	go func() {
 		for t:= range ticker.C {
-			_, err := connection.Write(dvs.NoCommand(1, 1, 1, 1))
-			if err != nil {
-				log.Printf("DVS Conn: %v", err)
-			}
-			fmt.Println("Tick", t)
+			Ping(&connection, 1)
+			log.Printf("Tick: %v", t)
 		}
 	}()
 
