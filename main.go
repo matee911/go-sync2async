@@ -33,8 +33,9 @@ const (
 	userAgent string = "NProxy/0.1a"
 )
 
-func parseArguments() (config_path string) {
-	flag.StringVar(&config_path, "config", "sync2async.json", "Path to configuration file")
+func parseArguments() (configPath string, dropSequence bool) {
+	flag.StringVar(&configPath, "config", "sync2async.json", "Path to configuration file")
+	flag.BoolVar(&dropSequence, "dropsequence", false, "Drop TransactionID sequence")
 	flag.Parse()
 	return
 }
@@ -53,13 +54,37 @@ func CallDVS(request *Request) {
 
 func init() {
 	var err error
-	configPath := parseArguments()
+	configPath, dropSequence := parseArguments()
 	config.ReadFromJson(configPath)
+
+	// Prepare DB
 	if dbConn, err = db.Connect(&config); err != nil {
 		os.Exit(1)
 	} else {
-		// create sequence
-
+		var relkind string
+		if err := dbConn.QueryRow(db.CheckSeq, transaction.SequenceName).Scan(&relkind); err != nil {
+			// no rows? thats actually good
+			if err.Error() == "sql: no rows in result set" {
+				if _, err := dbConn.Exec(fmt.Sprintf(db.CreateSeq, transaction.SequenceName)); err != nil {
+					log.Printf("Last query: %s", db.CreateSeq)
+					log.Print(err.Error())
+					os.Exit(1)
+				}
+			} else {
+				log.Fatalln(err.Error())
+			}
+		} else {
+			if dropSequence {
+				if _, err := dbConn.Exec(fmt.Sprintf(db.DropSeq, transaction.SequenceName)); err != nil {
+					log.Printf("Last query: %s", db.CreateSeq)
+					log.Print(err.Error())
+					os.Exit(1)
+				} else {
+					log.Print("Dropped.")
+					os.Exit(0)
+				}
+			}
+		}
 	}
 }
 
