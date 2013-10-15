@@ -42,6 +42,19 @@ func main() {
 		log.Println(err.Error())
 	}
 	defer connection.Close()
+	
+	// TODO(m): ladowanie czasu tickera z konfigu i castowanie
+	ticker := time.NewTicker(time.Second * 30)
+	defer ticker.Stop()
+	go func() {
+		for t:= range ticker.C {
+			_, err := connection.Write(dvs.NoCommand(1, 1, 1, 1))
+			if err != nil {
+				log.Printf("DVS Conn: %v", err)
+			}
+			fmt.Println("Tick", t)
+		}
+	}()
 
 	sync_http_handler := func(res http.ResponseWriter, req *http.Request) {
 		defer logging.HttpRequest(time.Now(), req)
@@ -78,9 +91,7 @@ func main() {
 		mapping[transactionId] = &request
 
 		go func(request *Request) {
-			header := dvs.RootHeader(1, dvs.CmdTypeOther, 1, 1, 1)
-			msg := dvs.NoCommand()
-			connection.Write(dvs.DeviceIO(fmt.Sprint(header, msg)))
+			connection.Write(dvs.NoCommand(1, 1, 1, 1))
 			request.resultChan <- request.TransactionId
 		}(&request)
 
