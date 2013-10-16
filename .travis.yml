@@ -3,3 +3,8 @@ go:
  - 1.0
  - 1.1
  - tip
+services: postgresql
+before_script:
+  - psql -c 'CREATE DATABASE nproxy_test;' -U postgres
+  - export NPROXY_DB_URI=postgres://postgres@127.0.0.1/nproxy_test
+
