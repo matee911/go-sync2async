@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/matee911/go-sync2async/cfg"
 	"github.com/matee911/go-sync2async/db"
-	"github.com/matee911/go-sync2async/dvs"
-	"github.com/matee911/go-sync2async/judge"
+	//"github.com/matee911/go-sync2async/dvs"
+	//"github.com/matee911/go-sync2async/judge"
 	"github.com/matee911/go-sync2async/logging"
-	"github.com/matee911/go-sync2async/transaction"
+	//"github.com/matee911/go-sync2async/transaction"
 	"io"
 	"log"
 	"net"
@@ -17,6 +17,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+  "errors"
 )
 
 type Request struct {
@@ -40,18 +41,6 @@ func parseArguments() (configPath string, dropSequence bool) {
 	return
 }
 
-func Ping(connection *net.Conn, config *cfg.Config) {
-	//_, err := connection.Write(dvs.NoCommand(1, 1, 1, 1))
-	//if err != nil {
-	//	log.Printf("DVS Conn: %v", err)
-	//}
-}
-
-func CallDVS(request *Request) {
-	time.Sleep(1 * time.Second) // Change to real connection
-	request.resultChan <- strconv.Itoa(request.TransactionId)
-}
-
 func init() {
 	var err error
 	configPath, dropSequence := parseArguments()
@@ -73,6 +62,134 @@ func init() {
 	}
 }
 
+func validateAddress(s string) (int, error) {
+    if len(s) == 0 {
+        return 0, errors.New("address is empty")
+    } else if len(s) > 10 {
+        return 0, errors.New("address out of range")
+    } else if i, err := strconv.Atoi(s); err != nil {
+        return i, err
+    } else {
+      return i, nil
+    }
+}
+
+func validateChipset(s string) (string, error) {
+  if len(s) == 18 {
+    return s, errors.New("invalid length of chipset_type_string")
+  } else {
+    return s, nil
+  }
+}
+
+func validateContent(s string) (int, error) {
+  if len(s) == 0 {
+    return 0, errors.New("content is empty")
+  } else if len(s) > 9 {
+    return 0, errors.New("content out of range")
+  } else if i, err := strconv.Atoi(s); err != nil {
+    return i, err
+  } else {
+    return i, nil
+  }
+}
+
+func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
+		defer logging.HttpRequest(time.Now(), req)
+		req.ParseForm()
+
+    res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("Server", userAgent)
+
+		// NUID (Nagra Unique IDentifier) [int, max 10-digits long]
+		address, err := validateAddress(req.PostForm.Get("address"))
+    if err!= nil {
+      http.Error(res, err.Error(), 400)
+      return
+    }
+
+		// Chipset Type String (please refer to DVS documentation)
+		// [text in format: xxxx xxxx xxxx xxxx xx]
+		chipset_type_string, err := validateChipset(req.PostForm.Get("chipset_type_string"))
+    if err!= nil {
+      http.Error(res, err.Error(), 400)
+      return
+    }
+
+		// Content identifier [int, max 9-digits long]
+		content_id, err := validateContent(req.PostForm.Get("content_id"))
+    if err != nil {
+      http.Error(res, err.Error(), 400)
+      return
+    }
+		// any binary string data, that will be sent to authorization module
+		// for additional authorization (eg. user credentials, token)
+		extra := req.PostForm.Get("extra")
+
+    log.Printf("addr: %d chip: %s content: %s extra: %s", address, chipset_type_string, content_id, extra)
+
+		//judge.AskForPermission("ala", &config)
+
+		//request := Request{resultChan: make(chan string), TransactionId: transactionId}
+		//mapping[transactionId] = &request
+		//go CallDVS(&request)
+
+		/*
+		   Response format:
+		   {
+		     "resp": {
+		         "status": [string]: ok | err,
+		         "ts" [number]: server time UTC timestamp
+		     }
+		   }
+
+		   Response contains one object with attribute resp which contains Response object
+		   Response object fields:
+		   * status [string] = 'err' or 'ok' indicates status of response
+		   * ts [int] - current time on server in UTC timestamp format
+
+		   Ok response
+		   {
+		     "resp": {
+		       "status": "ok",
+		       "ts": <UTC timestamp>,
+		       "license": {
+		         "object": "<base64 encoded DVS entitlement response>",
+		         "valid_to_timestamp": <UTC timestamp>,
+		         "metadata": "<entitlement description from authorization module>"
+		       },
+		     }
+		   }
+
+		   Error response
+		   {
+		     "resp": {
+		       "status": "err",
+		       "errcode": <error code>,
+		       "errdesc": "<developer message>",
+		       "err_text": "<user message>",
+		       "ts": <UTC timestamp>
+		     }
+		   }
+		   errcode - high-level error code
+		     400
+		     403
+		     500
+		*/
+		
+    /*
+		select {
+		case r := <-request.resultChan:
+			io.WriteString(res, r)
+		// TODO(m): ladowanie czasu z konfigu i castowanie
+		case <-time.After(5 * time.Second):
+			io.WriteString(res, "zepsute")
+		}
+    */
+	}
+}
+
 func main() {
 	mapping := make(map[int]*Request)
 	connection, err := net.Dial("tcp", config.DVS_Addr)
@@ -81,67 +198,42 @@ func main() {
 	}
 	defer connection.Close()
 
-	// TODO(m): ladowanie czasu tickera z konfigu i castowanie
-	ticker := time.NewTicker(time.Second * 30)
-	defer ticker.Stop()
+  // Heartbeat
+	heartbeat := time.NewTicker(time.Second * time.Duration(config.Heartbeat))
+	defer heartbeat.Stop()
 	go func() {
-		for t := range ticker.C {
-			Ping(&connection, &config)
-			log.Printf("Tick: %v", t)
+		for t := range heartbeat.C {
+			//Ping(&connection, &config)
+			log.Printf("Heartbeat: %v", t)
 		}
 	}()
-
-	sync_http_handler := func(res http.ResponseWriter, req *http.Request) {
-		defer logging.HttpRequest(time.Now(), req)
-		req.ParseForm()
-		//transactionId := req.Form.Get("transaction_id")
-
-		judge.AskForPermission("ala", &config)
-
-		transactionId := transaction.GetId(dbConn)
-		request := Request{resultChan: make(chan string), TransactionId: transactionId}
-		mapping[transactionId] = &request
-
-		go CallDVS(&request)
-
-		res.Header().Set("Content-Type", "text/plain")
-		res.Header().Set("Server", userAgent)
-		select {
-		case r := <-request.resultChan:
-			io.WriteString(res, r)
-		// TODO(m): ladowanie czasu z konfigu i castowanie
-		case <-time.After(5 * time.Second):
-			io.WriteString(res, "zepsute")
-		}
-
-	}
 
 	ping_http_handler := func(res http.ResponseWriter, req *http.Request) {
 		defer logging.HttpRequest(time.Now(), req)
 
-		transactionId := transaction.GetId(dbConn)
-		request := Request{resultChan: make(chan string), TransactionId: transactionId}
-		mapping[transactionId] = &request
+		//transactionId := transaction.GetId(dbConn)
+		//request := Request{resultChan: make(chan string), TransactionId: transactionId}
+		//mapping[transactionId] = &request
 
 		// change to CallDVS
-		go func(request *Request) {
-			connection.Write(dvs.NoCommand(1, 1, 1, 1))
-			request.resultChan <- strconv.Itoa(request.TransactionId)
-		}(&request)
+		//go func(request *Request) {
+		//	connection.Write(dvs.NoCommand(1, 1, 1, 1))
+		//	request.resultChan <- strconv.Itoa(request.TransactionId)
+		//}(&request)
 
 		res.Header().Set("Content-Type", "text/plain")
 		res.Header().Set("Server", userAgent)
-		select {
-		case r := <-request.resultChan:
-			io.WriteString(res, r)
+		//select {
+		//case r := <-request.resultChan:
+		//	io.WriteString(res, r)
 		// TODO(m): ladowanie czasu z konfigu i castowanie
-		case <-time.After(5 * time.Second):
-			io.WriteString(res, "zepsute")
-		}
-
+		//case <-time.After(time.Duration(config.Timeout) * time.Second):
+		//	io.WriteString(res, "zepsute")
+		//}
+    io.WriteString(res, "io")
 	}
 
-	http.HandleFunc("/sync", sync_http_handler)
+	http.HandleFunc("/license", licenseHttpHandler(mapping))
 	http.HandleFunc("/ping", ping_http_handler)
 	addr := fmt.Sprintf(":%v", config.Port)
 	log.Printf("Listening on port %v", config.Port)
