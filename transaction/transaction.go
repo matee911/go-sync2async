@@ -2,8 +2,8 @@ package transaction
 
 import (
 	"database/sql"
-  "fmt"
-  "log"
+	"fmt"
+	"log"
 )
 
 const (
@@ -11,12 +11,10 @@ const (
 )
 
 func GetId(db *sql.DB) (int, error) {
-  var value interface{}
+	var value int
 	err := db.QueryRow(fmt.Sprintf("SELECT nextval('%s')", SequenceName)).Scan(&value)
-  if err != nil {
-    log.Println(err)
-    return 0, err
-  } else {
-    return value.(int), nil
-  }
+	if err != nil {
+		log.Println(err)
+	}
+  return value, err
 }
