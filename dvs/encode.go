@@ -8,14 +8,6 @@ import (
 	"encoding/binary"
 )
 
-type CmdType int
-
-const (
-	CmdTypeOther CmdType = 5
-	CmdTypeVod CmdType = 8
-)
-
-
 func Enum(i int, size int) string {
 	s := strconv.Itoa(i)
 	if len(s) >= size {
@@ -42,20 +34,6 @@ func Hexlen(s string, size int) []byte {
 
 func DeviceIO(body string) []byte {
 	return append(Hexlen(body, 2), []byte(body)...)
-}
-
-func NoCommandBody() string {
-	return "1002"
-}
-
-func PushVodCommandBody() string {
-	//_push_vod_query(self, transaction_number, address, vod_ent_id, content_id, expiration_dt, viewing_duration, metadata, chipset_type_string):
-	//vod_address_part = prepare_vod_addr_header(address)
-    //assert len(vod_address_part) == VOD_ADDR_HEADER_LEN
-	//assert len(chipset_type_string) == 22
-	//vod_cmd_part = prepare_vod_load_entitlement_body(vod_ent_id, content_id, expiration_dt, viewing_duration, metadata, chipset_type_string) 
-	//self.push(deviceio(root_header_part + vod_address_part + vod_cmd_part))
-	return ""
 }
 
 func RootHeader(transactionId int, cmdType CmdType, sourceId int, destId int, mopPpid int) string {
