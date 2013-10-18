@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/matee911/go-sync2async/cfg"
 	"github.com/matee911/go-sync2async/db"
-	//"github.com/matee911/go-sync2async/dvs"
 	//"github.com/matee911/go-sync2async/judge"
 	"github.com/matee911/go-sync2async/logging"
 	//"github.com/matee911/go-sync2async/transaction"
+	"github.com/matee911/go-sync2async/dvs"
 	"io"
 	"log"
 	"net/http"
@@ -59,7 +59,7 @@ func init() {
 	}
 }
 
-func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *http.Request) {
+func licenseHttpHandler(commandsChannel chan dvs.Command) func(http.ResponseWriter, *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
 		defer logging.HttpRequest(time.Now(), req)
 		req.ParseForm()
@@ -94,6 +94,8 @@ func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *htt
 
 		log.Printf("addr: %d chip: %s content: %s extra: %s", address, chipset_type_string, content_id, extra)
 
+		commandsChannel <- dvs.NoCommand()
+
 		//judge.AskForPermission("ala", &config)
 
 		/*
@@ -107,6 +109,16 @@ func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *htt
 }
 
 func main() {
+
+	commandsChannel := make(chan dvs.Command, 100)
+	master := dvs.Master{SourceIds: config.SourceIds, DestinationId: config.DestinationId, MopPpid: config.MopPpid, Address: config.DVSAddr, CommandsChannel: commandsChannel}
+	master.Connect()
+	// Close?
+
+	//	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
+	//		commandsChannel <- dvs.NoCommand()
+	//		io.WriteString(res, "Hello")
+	//	})
 
 	// Heartbeat
 	heartbeat := time.NewTicker(time.Second * time.Duration(config.Heartbeat))
@@ -143,8 +155,7 @@ func main() {
 		io.WriteString(res, "io")
 	}
 
-	mapping := make(map[int]*Request)
-	http.HandleFunc("/license", licenseHttpHandler(mapping))
+	http.HandleFunc("/license", licenseHttpHandler(commandsChannel))
 	http.HandleFunc("/ping", ping_http_handler)
 	addr := fmt.Sprintf(":%v", config.Port)
 	log.Printf("Listening on port %v", config.Port)

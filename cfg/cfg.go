@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Port int
   // DVS_Addr address of DVS server [localhost:3000]
-	DVS_Addr string
+	DVSAddr string
   // Judge HTTP Address [http://localhost:4000/]
 	Judge_Addr string
   // TransactionDB configuration [nproxy:yxorpn@localhost:5432/nproxy]
@@ -22,13 +22,16 @@ type Config struct {
   Heartbeat int
   // Timeout for HTTP connection to NProxy [10]
   Timeout int
+  SourceIds []int
+  DestinationId int
+  MopPpid int
 }
 
 func (config *Config) ReadFromJson(configPath string) {
   // Default values
 	def := Config{
 		Port: 9000,
-		DVS_Addr: "localhost:3000",
+		DVSAddr: "localhost:3000",
 		Judge_Addr: "http://localhost:4000/",
 		TransactionDB_Host: "localhost",
 		TransactionDB_Port: 5432,
@@ -37,6 +40,7 @@ func (config *Config) ReadFromJson(configPath string) {
 		TransactionDB_Password: "yxorpn",
     Heartbeat: 30,
     Timeout: 10,
+    SourceIds: []int{1,2,3,4},
 	}
 	
 	
