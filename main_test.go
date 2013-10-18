@@ -18,3 +18,17 @@ func TestJSONErrorResponse(t *testing.T) {
 	)
 
 }
+
+func TestJSONSuccessResponse(t *testing.T) {
+	assert.Equal(t, SuccessResponse{
+		Resp: SuccessResponseJSON{
+			Status: "ok",
+			Ts:     123456790,
+			License: LicenseJSON{
+				Object:           "objectstr",
+				ValidToTimestamp: 1234567890,
+				MetaData:         "metadatastr",
+			}}}.String(),
+		`{"resp":{"status":"ok","ts":123456790,"license":{"object":"objectstr","valid_to_timestamp":1234567890,"metadata":"metadatastr"}}}`,
+	)
+}
