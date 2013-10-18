@@ -10,7 +10,6 @@ import (
 	//"github.com/matee911/go-sync2async/judge"
 	"github.com/matee911/go-sync2async/logging"
 	//"github.com/matee911/go-sync2async/transaction"
-	"encoding/json"
 	"errors"
 	"io"
 	"log"
@@ -93,54 +92,6 @@ func validateContent(s string) (int, error) {
 	} else {
 		return i, nil
 	}
-}
-
-type ErrorResponse struct {
-	Resp ErrRespJSON `json:"resp"`
-}
-
-func (r ErrorResponse) String() (s string) {
-	body, err := json.Marshal(r)
-	if err != nil {
-		s = ""
-		return
-	}
-	s = string(body)
-	return
-}
-
-type ErrRespJSON struct {
-	Status  string `json:"status"`
-	Ts      int    `json:"ts"`
-	ErrCode int    `json:"errcode"`
-	ErrDesc string `json:"errdesc"`
-	ErrText string `json:"err_text"`
-}
-
-type SuccessResponse struct {
-	Resp SuccessResponseJSON `json:"resp"`
-}
-
-func (r SuccessResponse) String() (s string) {
-	body, err := json.Marshal(r)
-	if err != nil {
-		s = ""
-		return
-	}
-	s = string(body)
-	return
-}
-
-type SuccessResponseJSON struct {
-	Status  string      `json:"status"`
-	Ts      int         `json:"ts"`
-	License LicenseJSON `json:"license"`
-}
-
-type LicenseJSON struct {
-	Object           string `json:"object"`
-	ValidToTimestamp int    `json:"valid_to_timestamp"`
-	MetaData         string `json:"metadata"`
 }
 
 func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *http.Request) {
