@@ -54,7 +54,3 @@ func TestEncodeDecodeHex(t *testing.T) {
 func TestRootHeader(t *testing.T) {
 	assert.Equal(t, RootHeader(12, CmdTypeOther, 3, 75, 99), fmt.Sprint("000000012050003007599", CreationDate()))
 }
-
-func TestNoCommand(t *testing.T) {
-	assert.Equal(t, NoCommand(1, 1, 1, 1), []byte{0, 32, 48, 48, 48, 48, 48, 48, 48, 48, 49, 48, 53, 48, 48, 48, 49, 48, 48, 48, 49, 49, 50, 48, 49, 51, 49, 48, 49, 53, 49, 48, 48, 50})
-}
