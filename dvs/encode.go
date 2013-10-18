@@ -6,14 +6,34 @@ import (
 	"time"
 	"fmt"
 	"encoding/binary"
+	"bytes"
 )
 
-func Enum(i int, size int) string {
+func EncodeNum(i int, size int) string {
 	s := strconv.Itoa(i)
 	if len(s) >= size {
 		return s
 	}
 	return strings.Repeat("0", size-len(s)) + s
+}
+
+func DecodeNum(s string) (int, error) {
+	return strconv.Atoi(s)
+}
+
+// Hex
+
+func EncodeHex(i int, size int) []byte {
+	b := [4]byte{}
+	binary.BigEndian.PutUint16(b[:], uint16(i))
+	return b[2-size:]
+}
+
+func DecodeHex(b []byte) (uint16, error) {
+	var i uint16
+	buf := bytes.NewBuffer(b)
+	err := binary.Read(buf, binary.BigEndian, &i)
+	return i, err
 }
 
 // now YYYYMMDD formated in UTC
@@ -22,14 +42,8 @@ func CreationDate() string {
 	return fmt.Sprintf("%02d%02d%02d", t.Year(), t.Month(), t.Day())
 }
 
-func Ehex(i int, size int) []byte {
-	b := [4]byte{}
-	binary.BigEndian.PutUint32(b[:], uint32(i))
-	return b[4-size:]
-}
-
 func Hexlen(s string, size int) []byte {
-	return Ehex(len(s), size)
+	return EncodeHex(len(s), size)
 }
 
 func DeviceIO(body string) []byte {
@@ -37,5 +51,5 @@ func DeviceIO(body string) []byte {
 }
 
 func RootHeader(transactionId int, cmdType CmdType, sourceId int, destId int, mopPpid int) string {
-	return fmt.Sprint(Enum(transactionId, 9), Enum(int(cmdType), 2), Enum(sourceId, 4), Enum(destId, 4), strconv.Itoa(mopPpid), CreationDate())
+	return fmt.Sprint(EncodeNum(transactionId, 9), EncodeNum(int(cmdType), 2), EncodeNum(sourceId, 4), EncodeNum(destId, 4), strconv.Itoa(mopPpid), CreationDate())
 }
