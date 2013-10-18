@@ -1,8 +1,8 @@
 package main
 
 import (
-  "encoding/json"
-  "time"
+	"encoding/json"
+	"time"
 )
 
 type ErrorResponse struct {
@@ -54,12 +54,12 @@ type LicenseJSON struct {
 }
 
 func CreateErrorResponse(errCode int, errDesc string, errText string) ErrorResponse {
-  return ErrorResponse{
-    Resp: ErrRespJSON{
-      Status: "err", 
-      Ts: int(time.Now().Unix()),
-      ErrCode: errCode,
-      ErrDesc: errDesc,
-      ErrText: errText,
-    }}
+	return ErrorResponse{
+		Resp: ErrRespJSON{
+			Status:  "err",
+			Ts:      int(time.Now().Unix()),
+			ErrCode: errCode,
+			ErrDesc: errDesc,
+			ErrText: errText,
+		}}
 }

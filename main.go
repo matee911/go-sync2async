@@ -10,13 +10,10 @@ import (
 	//"github.com/matee911/go-sync2async/judge"
 	"github.com/matee911/go-sync2async/logging"
 	//"github.com/matee911/go-sync2async/transaction"
-	"errors"
 	"io"
 	"log"
-	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -62,38 +59,6 @@ func init() {
 	}
 }
 
-func validateAddress(s string) (int, error) {
-	if len(s) == 0 {
-		return 0, errors.New("address is empty")
-	} else if len(s) > 10 {
-		return 0, errors.New("address out of range")
-	} else if i, err := strconv.Atoi(s); err != nil {
-		return i, err
-	} else {
-		return i, nil
-	}
-}
-
-func validateChipset(s string) (string, error) {
-	if len(s) == 18 {
-		return s, errors.New("invalid length of chipset_type_string")
-	} else {
-		return s, nil
-	}
-}
-
-func validateContent(s string) (int, error) {
-	if len(s) == 0 {
-		return 0, errors.New("content is empty")
-	} else if len(s) > 9 {
-		return 0, errors.New("content out of range")
-	} else if i, err := strconv.Atoi(s); err != nil {
-		return i, err
-	} else {
-		return i, nil
-	}
-}
-
 func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
 		defer logging.HttpRequest(time.Now(), req)
@@ -131,10 +96,6 @@ func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *htt
 
 		//judge.AskForPermission("ala", &config)
 
-		//request := Request{resultChan: make(chan string), TransactionId: transactionId}
-		//mapping[transactionId] = &request
-		//go CallDVS(&request)
-
 		/*
 		   errcode - high-level error code
 		     400
@@ -142,25 +103,10 @@ func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *htt
 		     500
 		*/
 
-		/*
-			select {
-			case r := <-request.resultChan:
-				io.WriteString(res, r)
-			// TODO(m): ladowanie czasu z konfigu i castowanie
-			case <-time.After(5 * time.Second):
-				io.WriteString(res, "zepsute")
-			}
-		*/
 	}
 }
 
 func main() {
-	mapping := make(map[int]*Request)
-	connection, err := net.Dial("tcp", config.DVS_Addr)
-	if err != nil {
-		log.Println(err.Error())
-	}
-	defer connection.Close()
 
 	// Heartbeat
 	heartbeat := time.NewTicker(time.Second * time.Duration(config.Heartbeat))
@@ -197,6 +143,7 @@ func main() {
 		io.WriteString(res, "io")
 	}
 
+	mapping := make(map[int]*Request)
 	http.HandleFunc("/license", licenseHttpHandler(mapping))
 	http.HandleFunc("/ping", ping_http_handler)
 	addr := fmt.Sprintf(":%v", config.Port)
