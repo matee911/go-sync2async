@@ -1,6 +1,9 @@
 package main
 
-import "encoding/json"
+import (
+  "encoding/json"
+  "time"
+)
 
 type ErrorResponse struct {
 	Resp ErrRespJSON `json:"resp"`
@@ -50,4 +53,13 @@ type LicenseJSON struct {
 	MetaData         string `json:"metadata"`
 }
 
-
+func CreateErrorResponse(errCode int, errDesc string, errText string) ErrorResponse {
+  return ErrorResponse{
+    Resp: ErrRespJSON{
+      Status: "err", 
+      Ts: int(time.Now().Unix()),
+      ErrCode: errCode,
+      ErrDesc: errDesc,
+      ErrText: errText,
+    }}
+}

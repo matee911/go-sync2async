@@ -105,7 +105,7 @@ func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *htt
 		// NUID (Nagra Unique IDentifier) [int, max 10-digits long]
 		address, err := validateAddress(req.PostForm.Get("address"))
 		if err != nil {
-			http.Error(res, err.Error(), 400)
+			http.Error(res, CreateErrorResponse(1, "invalid address", err.Error()).String(), 400)
 			return
 		}
 
@@ -113,14 +113,14 @@ func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *htt
 		// [text in format: xxxx xxxx xxxx xxxx xx]
 		chipset_type_string, err := validateChipset(req.PostForm.Get("chipset_type_string"))
 		if err != nil {
-			http.Error(res, err.Error(), 400)
+			http.Error(res, CreateErrorResponse(1, "invalid chipset", err.Error()).String(), 400)
 			return
 		}
 
 		// Content identifier [int, max 9-digits long]
 		content_id, err := validateContent(req.PostForm.Get("content_id"))
 		if err != nil {
-			http.Error(res, err.Error(), 400)
+			http.Error(res, CreateErrorResponse(1, "invalid content", err.Error()).String(), 400)
 			return
 		}
 		// any binary string data, that will be sent to authorization module
@@ -136,42 +136,6 @@ func licenseHttpHandler(mapping map[int]*Request) func(http.ResponseWriter, *htt
 		//go CallDVS(&request)
 
 		/*
-		   Response format:
-		   {
-		     "resp": {
-		         "status": [string]: ok | err,
-		         "ts" [number]: server time UTC timestamp
-		     }
-		   }
-
-		   Response contains one object with attribute resp which contains Response object
-		   Response object fields:
-		   * status [string] = 'err' or 'ok' indicates status of response
-		   * ts [int] - current time on server in UTC timestamp format
-
-		   Ok response
-		   {
-		     "resp": {
-		       "status": "ok",
-		       "ts": <UTC timestamp>,
-		       "license": {
-		         "object": "<base64 encoded DVS entitlement response>",
-		         "valid_to_timestamp": <UTC timestamp>,
-		         "metadata": "<entitlement description from authorization module>"
-		       },
-		     }
-		   }
-
-		   Error response
-		   {
-		     "resp": {
-		       "status": "err",
-		       "errcode": <error code>,
-		       "errdesc": "<developer message>",
-		       "err_text": "<user message>",
-		       "ts": <UTC timestamp>
-		     }
-		   }
 		   errcode - high-level error code
 		     400
 		     403
