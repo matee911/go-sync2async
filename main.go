@@ -104,7 +104,27 @@ func licenseHttpHandler(commandsChannel chan dvs.Command) func(http.ResponseWrit
 		     403
 		     500
 		*/
+	}
+}
 
+func pingHttpHandler(commandsChannel chan dvs.Command) func(http.ResponseWriter, *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
+		defer logging.HttpRequest(time.Now(), req)
+		req.ParseForm()
+
+		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("Server", userAgent)
+
+		commandsChannel <- dvs.NoCommand()
+		io.WriteString(res, "Hello")
+
+		//select {
+		//case r := <-request.resultChan:
+		//	io.WriteString(res, r)
+		// TODO(m): ladowanie czasu z konfigu i castowanie
+		//case <-time.After(time.Duration(config.Timeout) * time.Second):
+		//	io.WriteString(res, "zepsute")
+		//}
 	}
 }
 
@@ -115,48 +135,21 @@ func main() {
 	master.Connect()
 	// Close?
 
-	//	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-	//		commandsChannel <- dvs.NoCommand()
-	//		io.WriteString(res, "Hello")
-	//	})
-
 	// Heartbeat
 	heartbeat := time.NewTicker(time.Second * time.Duration(config.Heartbeat))
 	defer heartbeat.Stop()
 	go func() {
 		for t := range heartbeat.C {
 			//Ping(&connection, &config)
+			commandsChannel <- dvs.NoCommand()
 			log.Printf("Heartbeat: %v", t)
 		}
 	}()
 
-	ping_http_handler := func(res http.ResponseWriter, req *http.Request) {
-		defer logging.HttpRequest(time.Now(), req)
-
-		//transactionId := transaction.GetId(dbConn)
-		//request := Request{resultChan: make(chan string), TransactionId: transactionId}
-		//mapping[transactionId] = &request
-
-		// change to CallDVS
-		//go func(request *Request) {
-		//	connection.Write(dvs.NoCommand(1, 1, 1, 1))
-		//	request.resultChan <- strconv.Itoa(request.TransactionId)
-		//}(&request)
-
-		res.Header().Set("Content-Type", "text/plain")
-		res.Header().Set("Server", userAgent)
-		//select {
-		//case r := <-request.resultChan:
-		//	io.WriteString(res, r)
-		// TODO(m): ladowanie czasu z konfigu i castowanie
-		//case <-time.After(time.Duration(config.Timeout) * time.Second):
-		//	io.WriteString(res, "zepsute")
-		//}
-		io.WriteString(res, "io")
-	}
-
+	// Registered handlers
 	http.HandleFunc("/license", licenseHttpHandler(commandsChannel))
-	http.HandleFunc("/ping", ping_http_handler)
+	http.HandleFunc("/ping", pingHttpHandler(commandsChannel))
+
 	addr := fmt.Sprintf(":%v", config.Port)
 	log.Printf("Listening on port %v", config.Port)
 	log.Fatal(http.ListenAndServe(addr, nil))
