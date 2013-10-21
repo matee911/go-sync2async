@@ -1,9 +1,9 @@
 package dvs
 
 import (
-	"testing"
 	"fmt"
 	"github.com/matee911/go-sync2async/assert"
+	"testing"
 )
 
 func v(f interface{}, err error) interface{} {
@@ -38,8 +38,8 @@ func TestEncodeDecodeNum(t *testing.T) {
 
 // Hex
 func TestEncodeHex(t *testing.T) {
-	assert.Equal(t, EncodeHex(1 ,1), []byte{1})
-	assert.Equal(t, EncodeHex(65 ,2), []byte{0, 65})
+	assert.Equal(t, EncodeHex(1, 1), []byte{1})
+	assert.Equal(t, EncodeHex(65, 2), []byte{0, 65})
 }
 
 func TestDecodeHex(t *testing.T) {

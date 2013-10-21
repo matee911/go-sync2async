@@ -1,12 +1,12 @@
 package dvs
 
 import (
+	"bytes"
+	"encoding/binary"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
-	"fmt"
-	"encoding/binary"
-	"bytes"
 )
 
 func EncodeNum(i int, size int) string {

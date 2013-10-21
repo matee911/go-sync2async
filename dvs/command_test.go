@@ -1,8 +1,8 @@
 package dvs
 
 import (
-	"testing"
 	"github.com/matee911/go-sync2async/assert"
+	"testing"
 )
 
 func TestNoCommandBody(t *testing.T) {

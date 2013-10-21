@@ -16,5 +16,5 @@ func GetId(db *sql.DB) (int, error) {
 	if err != nil {
 		log.Println(err)
 	}
-  return value, err
+	return value, err
 }
